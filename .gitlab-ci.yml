@@ -1,0 +1,32 @@
+stages:
+  - copy_to_artifactory
+  - download_and_deploy
+
+copy_to_artifactory:
+  stage: copy_to_artifactory
+  script:
+    - echo "Copying files from shared drive to Artifactory"
+    - # Add commands here to copy files from the shared drive to Artifactory
+    - # For example:
+    - cp /path/to/shared/drive/* $CI_PROJECT_DIR/artifactory/
+    - # Use appropriate Artifactory API or CLI commands to upload files
+    - curl -u $ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD -T $CI_PROJECT_DIR/artifactory/* $ARTIFACTORY_URL/repository/path/to/target/
+  only:
+    - master
+  tags:
+    - shared_runner
+
+download_and_deploy:
+  stage: download_and_deploy
+  script:
+    - echo "Downloading artifact from Artifactory and deploying"
+    - # Download artifact from Artifactory
+    - curl -u $ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD -o artifact.zip $ARTIFACTORY_URL/repository/path/to/target/artifact.zip
+    - # SSH into the machine and copy the artifact
+    - ssh user@your-server-ip "mkdir -p /path/to/destination/"
+    - scp artifact.zip user@your-server-ip:/path/to/destination/
+    - ssh user@your-server-ip "cd /path/to/destination/ && unzip artifact.zip && rm artifact.zip"
+  only:
+    - master
+  tags:
+    - deployment_runner
